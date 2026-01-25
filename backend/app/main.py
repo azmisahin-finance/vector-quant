@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from app.data_sources import load_us_stock, load_crypto, load_bist
+from fastapi.middleware.cors import CORSMiddleware
+from app.data_sources import get_symbols, load_symbol
 from app.features import build_features
 from app.signals import generate_signal
 from app.backtest import backtest
@@ -7,21 +8,35 @@ from app.vector_db import build_faiss
 
 app = FastAPI(title="VektorQuant API")
 
+# CORS frontend için
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+@app.get("/markets")
+def list_markets():
+    return {"markets": list(get_symbols("").keys())}
+
+@app.get("/symbols")
+def symbols(market: str = "US"):
+    return {"symbols": get_symbols(market)}
+
 @app.get("/analyze")
-def analyze(symbol: str = "AAPL", market: str = "US"):
-    if market.lower() == "crypto":
-        df = load_crypto(symbol)
-    elif market.lower() == "bist":
-        df = load_bist(symbol)
-    else:
-        df = load_us_stock(symbol)
-
+def analyze(symbol: str, market: str = "US", period: str = "1y"):
+    df = load_symbol(symbol, period)
     df, X = build_features(df)
-    signals = [generate_signal(v) for v in X]
 
+    signals = [generate_signal(v) for v in X]
     bt = backtest(df, signals)
+
     index = build_faiss(X)
     D, I = index.search(X[-1:].reshape(1, -1), 5)
+
+    # Son tarihi gösterelim
+    last_date = df.index[-1].strftime("%Y-%m-%d")
 
     return {
         "symbol": symbol,
@@ -29,5 +44,6 @@ def analyze(symbol: str = "AAPL", market: str = "US"):
         "last_signal": signals[-1],
         "winrate": bt["winrate"],
         "equity": bt["equity"],
-        "similar_days": I.tolist()
+        "similar_days": I.tolist(),
+        "last_date": last_date
     }
