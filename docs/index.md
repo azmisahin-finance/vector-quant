@@ -1,45 +1,38 @@
 # VektorQuant Terminal
 
-**Institutional Grade Quantitative Analytics & Backtesting Engine**
+**Professional Quantitative Analysis Platform**
 
-![Dashboard Preview](assets/screenshots/dashboard-main.png)
+VektorQuant, perakende yatırımcılar için kurumsal düzeyde analiz yetenekleri sunan Docker tabanlı bir finansal teknolojidir.
 
-## 🚀 Proje Hakkında
+---
 
-VektorQuant, perakende yatırımcılar için kurumsal düzeyde (Institutional Grade) analiz yetenekleri sunan, Docker tabanlı, modüler bir finansal teknolojidir. 
+## 📸 Gallery & Proof of Work
 
-Geleneksel "Hisse Tarayıcılarının" ötesine geçerek; **Risk Analizi (Sharpe Ratio)**, **Vektör Tabanlı Benzerlik Arama (AI)** ve **Dinamik Backtest** motorlarını tek bir "Terminal" arayüzünde birleştirir.
+Sistemin farklı varlık sınıfları (Asset Classes) üzerindeki başarısı aşağıda test edilmiştir.
 
-## 🔥 Temel Özellikler
+### 1. Borsa İstanbul (BIST 100)
+Yerel para birimi (`₺`) desteği ve BIST veri entegrasyonu.
+![BIST Analysis](assets/screenshots/dashboard-bist.png)
 
-| Özellik | Açıklama |
-| :--- | :--- |
-| **Terminal UI** | Bloomberg/Refinitiv esintili, dikkat dağıtmayan "Dark Mode" arayüz. |
-| **Fail-Safe Data** | `yfinance` bağlantı kopmalarına karşı dirençli, User-Agent korumalı veri motoru. |
-| **Risk Engine** | Sadece kazanca değil, riske odaklanır. Sharpe Ratio ve Max Drawdown hesaplar. |
-| **Vector AI** | Geçmiş piyasa verilerini vektörize eder ve bugünün piyasa koşullarına en çok benzeyen geçmiş günleri bulur. |
-| **Universal Access** | BIST, NASDAQ, Kripto ve Emtia piyasalarına tek noktadan erişim. Manuel sembol girişi destekler. |
+### 2. Kripto Para Piyasaları (24/7)
+Yüksek volatilite içeren varlıklarda Bollinger ve RSI uyumu.
+![Crypto Analysis](assets/screenshots/dashboard-crypto.png)
 
-## 🛠️ Kurulum
+### 3. Forex & Pariteler
+Global pariteler (`€`, `$`) ve makro analiz yeteneği.
+![Forex Analysis](assets/screenshots/dashboard-forex.png)
 
-Sistemi ayağa kaldırmak için tek komut yeterlidir:
+### 4. Emtialar (Altın/Gümüş)
+Emtia piyasalarındaki trend takibi ve risk analizi.
+![Commodities Analysis](assets/screenshots/dashboard-commodities.png)
 
-```bash
-git clone https://github.com/kullaniciadi/VektorQuant.git
-cd VektorQuant
-docker-compose up --build
-```
+---
 
-Servisler şu adreslerde çalışacaktır:
+## 🏗️ Mimari Özellikler
 
-*   **Terminal UI:** `http://localhost:8501`
-*   **API Gateway:** `http://localhost:8000/docs`
-
-## 🏗️ Mimari
-
-Proje, **Clean Architecture** prensiplerine sadık kalarak, Mikroservis mimarisine uygun tasarlanmıştır.
-
-*   **Frontend:** Streamlit (Custom CSS Injection ile Terminal Görünümü)
-*   **Backend:** FastAPI (Async, Type-Safe)
-*   **Data Science:** Pandas v2.2, NumPy, FAISS (Vektör Veritabanı)
-*   **Infrastructure:** Docker & Docker Compose
+| Bileşen | Teknoloji | Açıklama |
+| :--- | :--- | :--- |
+| **Frontend** | Streamlit | Bloomberg Terminal esintili, CSS ile güçlendirilmiş arayüz. |
+| **Backend** | FastAPI | Asenkron, yüksek performanslı API Gateway. |
+| **AI Engine** | FAISS | Vektör tabanlı tarihsel benzerlik arama motoru. |
+| **Data Feed** | Yahoo Finance | User-Agent korumalı, çoklu zaman dilimi destekli veri motoru. |
