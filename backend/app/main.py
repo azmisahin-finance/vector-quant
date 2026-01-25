@@ -19,8 +19,6 @@ app.add_middleware(
 
 @app.get("/markets")
 def list_markets():
-    # HATA DÜZELTİLDİ: Artık listeden .keys() çağırmıyoruz. 
-    # Doğrudan keys listesini dönen fonksiyonu kullanıyoruz.
     return {"markets": get_market_names()}
 
 @app.get("/symbols")
@@ -31,7 +29,7 @@ def symbols(market: str = "US_TECH_GIANTS"):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analyze")
-def analyze(symbol: str, market: str = "", period: str = "1y"):
+def analyze(symbol: str, period: str = "1y"):
     try:
         # 1. Data Loading
         df = load_symbol(symbol, period)
@@ -39,30 +37,39 @@ def analyze(symbol: str, market: str = "", period: str = "1y"):
         # 2. Feature Engineering
         df, X = build_features(df)
         
-        # 3. Signals (Apply to all rows for charting)
+        # 3. Signals
         signals = df.apply(generate_signal, axis=1).tolist()
         
         # 4. Backtest
         bt_results = backtest(df, signals)
         
         # 5. Vector AI (Similar Days)
-        # Yeterli veri varsa çalıştır
         similar_days_info = []
         if len(X) > 10:
             index = build_faiss(X)
-            # Search logic
             search_vector = X[-1:].reshape(1, -1)
-            # Kendisi (0) ve en yakın 5 komşu
             k = min(6, len(X))
             D, I = index.search(search_vector, k)
             
             for idx in I[0]:
-                if idx != len(df) - 1 and idx < len(df): # Kendisi değilse
+                if idx != len(df) - 1 and idx < len(df): 
                     date_str = df.index[idx].strftime("%Y-%m-%d")
                     ret = df.iloc[idx]["return"]
                     similar_days_info.append({"date": date_str, "return": round(ret*100, 2)})
 
-        # Chart Data Prep
+        # --- KRİTİK DÜZELTME BURADA YAPILDI ---
+        # Eski: .fillna(method='bfill') -> KALDIRILDI
+        # Yeni: .bfill() veya .ffill()
+        
+        # NaN değerlerini JSON uyumlu hale getirmek için temizlik:
+        # 1. RSI boşluklarını 50 (nötr) ile doldur
+        rsi_clean = df["rsi"].fillna(50).tolist()
+        
+        # 2. Bollinger boşluklarını geriye dönük doldur (bfill)
+        # Pandas 2.0+ uyumluluğu için method='bfill' yerine doğrudan .bfill() kullanıyoruz.
+        bb_upper_clean = df["bb_upper"].bfill().ffill().fillna(0).tolist()
+        bb_lower_clean = df["bb_lower"].bfill().ffill().fillna(0).tolist()
+
         chart_data = {
             "dates": df.index.strftime("%Y-%m-%d").tolist(),
             "open": df["Open"].tolist(),
@@ -70,9 +77,9 @@ def analyze(symbol: str, market: str = "", period: str = "1y"):
             "low": df["Low"].tolist(),
             "close": df["Close"].tolist(),
             "volume": df["Volume"].tolist(),
-            "rsi": df["rsi"].fillna(50).tolist(),
-            "bb_upper": df["bb_upper"].fillna(method='bfill').tolist(),
-            "bb_lower": df["bb_lower"].fillna(method='bfill').tolist(),
+            "rsi": rsi_clean,
+            "bb_upper": bb_upper_clean,
+            "bb_lower": bb_lower_clean,
             "signals": signals
         }
 
@@ -86,9 +93,8 @@ def analyze(symbol: str, market: str = "", period: str = "1y"):
         }
 
     except ValueError as ve:
-        # Bilinen veri hataları (404 döner)
         raise HTTPException(status_code=404, detail=str(ve))
     except Exception as e:
-        # Bilinmeyen sunucu hataları
-        print(f"Server Error: {e}")
+        import traceback
+        traceback.print_exc() # Terminale detaylı hata basar
         raise HTTPException(status_code=500, detail=str(e))
