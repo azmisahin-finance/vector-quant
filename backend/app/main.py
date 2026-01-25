@@ -34,41 +34,54 @@ def analyze(symbol: str, period: str = "1y"):
         # 1. Data Loading
         df = load_symbol(symbol, period)
         
-        # 2. Feature Engineering
+        # 2. Feature Engineering (Artık satır silmiyor)
         df, X = build_features(df)
         
-        # 3. Signals
-        signals = df.apply(generate_signal, axis=1).tolist()
+        # GÜVENLİK KONTROLÜ: Eğer dataframe boşsa veya çok kısaysa
+        if df.empty or len(df) < 2:
+            raise ValueError("Insufficient data for this period (try a longer timeframe)")
+
+        # 3. Signals (Apply to all rows)
+        # Sinyal fonksiyonu NaN değerlerde hata vermemeli, "HOLD" dönmeli
+        signals = []
+        for index, row in df.iterrows():
+            try:
+                # NaN kontrolü: Eğer kritik veriler yoksa HOLD
+                if pd.isna(row['rsi']) or pd.isna(row['bb_upper']):
+                    signals.append("HOLD")
+                else:
+                    signals.append(generate_signal(row))
+            except:
+                signals.append("HOLD")
         
         # 4. Backtest
         bt_results = backtest(df, signals)
         
         # 5. Vector AI (Similar Days)
         similar_days_info = []
+        # AI için en az 10 bar gerekli, yoksa boş dön
         if len(X) > 10:
-            index = build_faiss(X)
-            search_vector = X[-1:].reshape(1, -1)
-            k = min(6, len(X))
-            D, I = index.search(search_vector, k)
-            
-            for idx in I[0]:
-                if idx != len(df) - 1 and idx < len(df): 
-                    date_str = df.index[idx].strftime("%Y-%m-%d")
-                    ret = df.iloc[idx]["return"]
-                    similar_days_info.append({"date": date_str, "return": round(ret*100, 2)})
+            try:
+                index = build_faiss(X)
+                search_vector = X[-1:].reshape(1, -1)
+                k = min(6, len(X))
+                D, I = index.search(search_vector, k)
+                
+                for idx in I[0]:
+                    # Index bounds check
+                    if idx < len(df) and idx != len(df) - 1:
+                        date_str = df.index[idx].strftime("%Y-%m-%d")
+                        ret = df.iloc[idx]["return"]
+                        similar_days_info.append({"date": date_str, "return": round(ret*100, 2)})
+            except Exception as ai_err:
+                print(f"AI Error: {ai_err}")
 
-        # --- KRİTİK DÜZELTME BURADA YAPILDI ---
-        # Eski: .fillna(method='bfill') -> KALDIRILDI
-        # Yeni: .bfill() veya .ffill()
-        
-        # NaN değerlerini JSON uyumlu hale getirmek için temizlik:
-        # 1. RSI boşluklarını 50 (nötr) ile doldur
+        # JSON Data Preparation (Pandas 2.0 Safe)
+        # NaN değerleri grafik kütüphanesi için temizle
+        # bfill() ve ffill() veri boşluklarını doldurur, kalanı 0 yapar.
         rsi_clean = df["rsi"].fillna(50).tolist()
-        
-        # 2. Bollinger boşluklarını geriye dönük doldur (bfill)
-        # Pandas 2.0+ uyumluluğu için method='bfill' yerine doğrudan .bfill() kullanıyoruz.
-        bb_upper_clean = df["bb_upper"].bfill().ffill().fillna(0).tolist()
-        bb_lower_clean = df["bb_lower"].bfill().ffill().fillna(0).tolist()
+        bb_upper_clean = df["bb_upper"].bfill().ffill().fillna(df["Close"]).tolist() # BB yoksa Fiyatı bas
+        bb_lower_clean = df["bb_lower"].bfill().ffill().fillna(df["Close"]).tolist()
 
         chart_data = {
             "dates": df.index.strftime("%Y-%m-%d").tolist(),
@@ -76,25 +89,29 @@ def analyze(symbol: str, period: str = "1y"):
             "high": df["High"].tolist(),
             "low": df["Low"].tolist(),
             "close": df["Close"].tolist(),
-            "volume": df["Volume"].tolist(),
+            "volume": df["Volume"].fillna(0).tolist(),
             "rsi": rsi_clean,
             "bb_upper": bb_upper_clean,
             "bb_lower": bb_lower_clean,
             "signals": signals
         }
 
+        # Son veriler (Güvenli erişim)
+        last_close = df["Close"].iloc[-1]
+        last_signal = signals[-1] if signals else "HOLD"
+
         return {
             "meta": {"symbol": symbol, "period": period},
-            "last_close": round(df["Close"].iloc[-1], 2),
-            "last_signal": signals[-1],
+            "last_close": round(last_close, 2),
+            "last_signal": last_signal,
             "metrics": bt_results,
             "ai_analysis": similar_days_info,
             "chart_data": chart_data
         }
 
     except ValueError as ve:
-        raise HTTPException(status_code=404, detail=str(ve))
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         import traceback
-        traceback.print_exc() # Terminale detaylı hata basar
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
