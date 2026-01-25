@@ -2,7 +2,7 @@
 
 **Institutional Grade Quantitative Analytics & Backtesting Engine**
 
-![Dashboard Preview](assets/screenshots/dashboard-preview.png)
+![Dashboard Preview](assets/screenshots/dashboard-main.png)
 
 ## 🚀 Proje Hakkında
 
