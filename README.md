@@ -1,54 +1,58 @@
-# VektorQuant
+# 🛰️ VektorQuant
 
-📊 **Vector-Based Quantitative Trading Platform**
+**Institutional Grade Quantitative Analytics Platform**
 
-## Genel Bakış
+![VektorQuant Dashboard](docs/assets/screenshots/dashboard-preview.png)
 
-VektorQuant, hisse senetleri, BIST ve kripto piyasalarını analiz eden, vektör tabanlı sinyaller üreten, equity curve ve backtest raporları sunan profesyonel bir platformdur.
+> **"Kör Sinyal Yok, Sadece Matematik Var."**
 
-### Özellikler
+VektorQuant; BIST, Kripto ve ABD borsalarını analiz eden, yapay zeka destekli (Vector Similarity) ve risk odaklı (Sharpe/Drawdown) profesyonel bir analiz terminalidir.
 
-- Dinamik piyasa ve sembol seçimi
-- Candlestick + AL/SAT overlay + RSI + Momentum
-- Equity curve ve drawdown görselleştirmesi
-- FAISS ile benzer gün analizi
-- Screener: Çoklu sembol tarama
-- Parametreli backend, frontend ile global kullanım
-- Docker ile tek komut çalıştırma
+---
 
-### Mimari
+## ⚡ Hızlı Başlangıç
 
-```
-
-VektorQuant
-│
-├── Data Engine: US, BIST, Crypto
-├── Feature Engine: Indicators, Vector Builder
-├── Strategy Engine: Rule-based, FAISS
-├── Risk Engine: Position sizing, Drawdown
-├── Backtest Engine: Equity curve, Winrate
-└── UI: Streamlit Dashboard
-
-````
+### Gereksinimler
+* Docker & Docker Compose
 
 ### Kurulum
 
 ```bash
-git clone <repo-url>
+# 1. Repoyu klonla
+git clone https://github.com/your-repo/VektorQuant.git
+
+# 2. İçeri gir
 cd VektorQuant
+
+# 3. Sistemi başlat (Backend + Frontend)
 docker-compose up --build
-````
+```
 
-* Backend: [http://localhost:8000/docs](http://localhost:8000/docs)
-* Frontend: [http://localhost:8501](http://localhost:8501)
-
-### Geliştirme
-
-* Yeni indikatör eklemek: `backend/app/features.py`
-* Yeni sinyal kuralı: `backend/app/signals.py`
-* Ek veri kaynağı: `backend/app/data_sources.py`
-* UI iyileştirmeleri: `frontend/app.py`
-
-````
+Tarayıcınızı açın: **[http://localhost:8501](http://localhost:8501)**
 
 ---
+
+## 🌟 Özellikler
+
+*   **📟 Pro-Terminal UI:** Göz yormayan, odaklanmayı artıran özelleştirilmiş karanlık mod arayüzü.
+*   **🧠 Vector AI:** FAISS kullanarak "Bugünkü piyasa hareketleri geçmişte hangi günlere benziyordu?" sorusuna yanıt verir.
+*   **🛡️ Risk Engine:** Sadece "Al/Sat" demez; işlemin Sharpe Oranını ve Win Rate'ini hesaplar.
+*   **🌍 Multi-Market:** BIST 100, NASDAQ, Crypto ve Emtialar hazır tanımlıdır. İsterseniz manuel giriş (Custom Ticker) yapabilirsiniz.
+*   **⚡ Resilient Backend:** Veri sağlayıcı hatalarına karşı dirençli (Retry logic & User-Agent spoofing).
+
+## 📂 Proje Yapısı
+
+```
+VektorQuant/
+├── backend/            # FastAPI Core Logic
+│   ├── app/features.py # Teknik İndikatörler (RSI, Bollinger, MACD)
+│   ├── app/signals.py  # Alım-Satım Algoritmaları
+│   └── app/vector_db.py# AI Benzerlik Motoru
+├── frontend/           # Streamlit Terminal UI
+├── docs/               # Dokümantasyon & Görseller
+└── docker-compose.yml  # Orkestrasyon
+```
+
+## 📜 Lisans
+
+Bu proje GNU Affero General Public License v3.0 ile lisanslanmıştır.
