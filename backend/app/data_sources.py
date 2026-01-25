@@ -1,6 +1,4 @@
 import yfinance as yf
-import requests
-import pandas as pd
 from app.market_data import MARKET_INDICES
 
 def get_market_names():
@@ -9,7 +7,6 @@ def get_market_names():
 
 def get_symbols(market_key):
     """Seçilen marketin sembol listesini döner."""
-    # Eğer market key yoksa veya boşsa default olarak US_TECH_GIANTS dön
     if not market_key or market_key not in MARKET_INDICES:
         return MARKET_INDICES["US_TECH_GIANTS"]
     return MARKET_INDICES[market_key]
@@ -17,28 +14,29 @@ def get_symbols(market_key):
 def load_symbol(symbol, period="1y"):
     """
     yfinance üzerinden veri çeker.
+    Session injection KALDIRILDI (Hata sebebi buydu).
+    yfinance'in kendi iç mekanizmasına bırakıyoruz.
     """
     try:
-        session = requests.Session()
-        session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        })
-
-        ticker = yf.Ticker(symbol, session=session)
+        # 1. Ticker objesi oluştur (Session parametresi YOK)
+        ticker = yf.Ticker(symbol)
+        
+        # 2. Veriyi çek
         df = ticker.history(period=period)
         
+        # 3. Veri boşsa alternatif yöntem dene
         if df is None or df.empty:
-            # Fallback
             df = yf.download(symbol, period=period, progress=False)
         
+        # 4. Hala boşsa hata fırlat
         if df.empty:
-            raise ValueError(f"No data found for {symbol}")
+            raise ValueError(f"No data found for symbol: {symbol}")
 
-        # Timezone temizliği
+        # 5. Timezone temizliği (Grafiklerin çökmemesi için şart)
         df.index = df.index.tz_localize(None)
         
         return df
 
     except Exception as e:
         print(f"Data Source Error ({symbol}): {e}")
-        raise ValueError(f"Data load failed: {e}")
+        raise ValueError(f"Yahoo Finance Error: {str(e)}")
