@@ -1,0 +1,15 @@
+# frontend/.streamlit/config.toml
+[theme]
+primaryColor = "#00FF7F"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#161920"
+textColor = "#FAFAFA"
+font = "monospace"
+
+[server]
+headless = true
+address = "0.0.0.0"
+port = 8501
+
+[browser]
+gatherUsageStats = false

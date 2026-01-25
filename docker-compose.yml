@@ -1,13 +1,24 @@
-
 services:
   backend:
     build: ./backend
+    container_name: vektor_backend
+    restart: always
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/markets"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     build: ./frontend
+    container_name: vektor_frontend
+    restart: always
     ports:
       - "8501:8501"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+    volumes:
+      - ./frontend:/app  # Hot-reload for development
