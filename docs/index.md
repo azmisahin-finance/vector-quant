@@ -26,6 +26,10 @@ Global pariteler (`€`, `$`) ve makro analiz yeteneği.
 Emtia piyasalarındaki trend takibi ve risk analizi.
 ![Commodities Analysis](assets/screenshots/dashboard-commodities.png)
 
+### 5. US Blue Chips (Dow Jones 30)
+Amerika'nın en köklü sanayi devlerinde (Blue Chip Stocks) yüksek başarı oranı (%80 Win Rate örneği).
+![Dow Jones Analysis](assets/screenshots/dashboard-dow.png)
+
 ---
 
 ## 🏗️ Mimari Özellikler
