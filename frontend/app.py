@@ -13,7 +13,7 @@ def get_currency_symbol(ticker):
 
 # --- 1. CONFIG & CSS INJECTION (FIXED) ---
 st.set_page_config(
-    page_title="VektorQuant Terminal",
+    page_title="Vektor Quant",
     layout="wide",
     page_icon="🧊",
     initial_sidebar_state="expanded"
@@ -72,7 +72,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 2. NETWORK CHECK ---
-BACKEND_URLS = ["http://backend:8000", "http://localhost:8000"]
+BACKEND_URLS = ["http://vector-quant-service:8000", "http://localhost:8000"]
 if 'backend_url' not in st.session_state:
     found = None
     for url in BACKEND_URLS:

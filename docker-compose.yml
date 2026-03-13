@@ -1,24 +1,22 @@
 services:
-  backend:
+  vector-quant-service:
     build: ./backend
-    container_name: vektor_backend
+    container_name: vector-quant-service
     restart: always
-    ports:
-      - "8000:8000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/markets"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/markets" ]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  frontend:
+  vector-quant:
     build: ./frontend
-    container_name: vektor_frontend
+    container_name: vector-quant
     restart: always
     ports:
-      - "8501:8501"
+      - "19110:8501"
     depends_on:
-      backend:
+      vector-quant-service:
         condition: service_started
     volumes:
-      - ./frontend:/app  # Hot-reload for development
+      - ./frontend:/app # Hot-reload for development
